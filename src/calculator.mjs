@@ -41,7 +41,7 @@ export class Calculator {
   result = false;
   error = '';
   input(key) {
-    if (key === 'Escape' || key === 'AC') { this.expression = ''; this.result = false; this.error = ''; return; }
+    if (key === 'Escape' || key === 'Delete' || key === 'AC') { this.expression = ''; this.result = false; this.error = ''; return; }
     if (key === 'Backspace') {
       this.expression = this.error ? '' : this.expression.slice(0, -1);
       this.error = ''; this.result = false; return;

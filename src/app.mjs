@@ -11,7 +11,7 @@ function input(key) {
 document.querySelectorAll('button[data-key]').forEach(button => button.addEventListener('click', () => input(button.dataset.key)));
 document.addEventListener('keydown', event => {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
-  if (/^[\d.+*/=-]$/.test(event.key) || ['Enter', 'Escape', 'Backspace'].includes(event.key)) {
+  if (/^[\d.+*/=-]$/.test(event.key) || ['Enter', 'Escape', 'Delete', 'Backspace'].includes(event.key)) {
     event.preventDefault(); input(event.key);
   }
 });
