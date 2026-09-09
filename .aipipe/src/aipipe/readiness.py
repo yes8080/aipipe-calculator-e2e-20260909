@@ -47,6 +47,8 @@ def inspect(data, root, registry, purpose='handoff', env=None, offline=False):
             detail = operation()
             checks.append({'name': name, 'ok': True, 'detail': detail})
         except (ValueError, OSError, KeyError, TypeError) as exc:
+            from .reporting import capture
+            capture(exc)
             checks.append({'name': name, 'ok': False, 'detail': str(exc)})
     def require(condition, message):
         if not condition:

@@ -2,6 +2,8 @@
 
 aipipe 提供可独立调用的 Skills、项目配置生成和配置执行能力，使用 GitHub 原生 Issue、PR、Review、CI 组织开发。设计、拆片、发布、开发与验收由用户选择的 AI 工具和模型完成。没有常驻调度服务，不调用或启动 ZCode、OpenCode、Claude Code；用户自行打开所选工具。
 
+当前版本 0.5.3 修正同步合并拒绝的结构化结果，补充脱敏 API 诊断及默认关闭的[自动缺陷上报](references/error-reporting.md)；详见 [身份结果契约](references/identity.md)与[CLI 诊断](references/cli.md)。
+
 ## 从当前任务开始
 
 真正的入口是 [.aipipe/AGENTS.md](AGENTS.md)。以下能力独立使用，不需要按顺序执行：

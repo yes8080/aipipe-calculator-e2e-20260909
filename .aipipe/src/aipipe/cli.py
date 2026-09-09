@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 from . import __version__, config, context, initialize, owner_auth, runner, readiness, identity, status
 from .credentials import credential
+from . import reporting
 
 
 def common(p):
@@ -150,6 +151,7 @@ def dispatch(args):
 
 def main(argv=None):
     args = None
+    report_token = reporting.begin()
     try:
         args = parser().parse_args(argv)
         return dispatch(args)
@@ -157,5 +159,12 @@ def main(argv=None):
         print('Cancelled; existing GitHub resources were preserved.',file=sys.stderr)
         return 130
     except (ValueError,OSError,KeyError,TypeError) as exc:
+        reporting.capture(exc)
         print('Stopped: '+str(exc),file=sys.stderr)
         return 2
+    except Exception as exc:
+        reporting.capture(exc, 'internal')
+        print('Stopped: unexpected internal error; no operation was retried.', file=sys.stderr)
+        return 2
+    finally:
+        reporting.finish(args, report_token)

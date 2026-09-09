@@ -10,7 +10,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from aipipe import cli, config
+from aipipe import cli, config, reporting
 from aipipe.github import GhError
 
 
@@ -188,6 +188,59 @@ class ResultJsonTests(unittest.TestCase):
                 self.assertEqual(result['primary']['status'], 'unknown')
                 self.assertEqual(result['primary']['error']['category'], 'invalid_success_response')
                 self.assertEqual(sum(method == 'POST' for _, method, _ in calls), 1)
+
+    def test_structured_unknown_without_exception_is_collected_for_reporting(self):
+        for fake, category in (
+            (FakeClient(write={'merged':True}), 'invalid_success_response'),
+            (FakeClient(write={'merged':True, 'sha':MERGE_SHA}, readback={'head':{'sha':'c'*40}}), 'readback_mismatch'),
+        ):
+            with self.subTest(category=category), patch('aipipe.reporting.report', return_value=None) as report:
+                code, result, calls = self.run_cli(fake, ['pr', 'merge', '6', '--squash', '--match-head-commit', SHA])
+                self.assertEqual(code, 2)
+                self.assertEqual(result['primary']['status'], 'unknown')
+                self.assertIn(category, [event.get('category') for event in report.call_args.args[1]])
+                self.assertEqual(sum(method == 'PUT' for _, method, _ in calls), 1)
+        fake = FakeClient(write={'commit_id':SHA}, readback={'head':{'sha':'c'*40}})
+        with patch('aipipe.reporting.report', return_value=None) as report:
+            code, result, _ = self.run_cli(fake, ['pr', 'review', '6', '--approve', '--body', 'Verified', '--match-head-commit', SHA])
+            self.assertEqual(code, 2)
+            self.assertIn('head_changed', [event.get('category') for event in report.call_args.args[1]])
+
+    def test_documented_merge_rejections_fail_without_retry_or_metadata(self):
+        for status in (403, 404, 405, 409, 422):
+            with self.subTest(status=status):
+                fake = FakeClient(write=GhError('api', status=status))
+                code, result, calls = self.run_cli(fake, ['pr', 'merge', '6', '--squash',
+                                                         '--match-head-commit', SHA])
+                self.assertEqual(code, 1)
+                self.assertEqual(result['primary']['status'], 'failed')
+                self.assertEqual(result['primary']['error'],
+                                 {'category':'github_rejected', 'phase':'write', 'status':status})
+                self.assertEqual(result['metadata']['status'], 'not_run')
+                self.assertEqual(result['recovery']['scope'], 'none')
+                self.assertEqual(sum(method == 'PUT' for _, method, _ in calls), 1)
+                self.assertEqual(calls[-1][1], 'PUT')
+
+    def test_ambiguous_writes_and_failed_readback_remain_unknown(self):
+        for status in (None, 408, 429, 500, 502, 503):
+            for operation, decision in (('merge', '--squash'), ('review', '--approve')):
+                with self.subTest(status=status, operation=operation):
+                    fake = FakeClient(write=GhError('api', code=1, status=status))
+                    argv = ['pr', operation, '6', decision, '--match-head-commit', SHA]
+                    if operation == 'review':
+                        argv += ['--body', 'Verified']
+                    code, result, calls = self.run_cli(fake, argv)
+                    self.assertEqual(code, 2)
+                    self.assertEqual(result['primary']['status'], 'unknown')
+                    self.assertEqual(result['recovery']['scope'], 'read_only')
+                    self.assertEqual(sum(method != 'GET' for _, method, _ in calls), 1)
+        fake = FakeClient(write={'merged':True, 'sha':MERGE_SHA},
+                          readback=GhError('api', status=405))
+        code, result, calls = self.run_cli(fake, ['pr', 'merge', '6', '--squash',
+                                                 '--match-head-commit', SHA])
+        self.assertEqual(code, 2)
+        self.assertEqual(result['primary']['error']['phase'], 'readback')
+        self.assertEqual(sum(method == 'PUT' for _, method, _ in calls), 1)
 
     def test_merge_response_with_non_string_sha_is_unknown_after_one_write(self):
         for sha in (None, 1, [], {}):

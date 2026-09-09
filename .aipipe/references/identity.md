@@ -61,6 +61,8 @@ aipipe github --result-json --role delivery --identity REVIEWER.json -- pr merge
 
 带身份的合并目前只支持该路径，不接受 auto 或 admin。等待 CI/审批由操作者按 Skill 完成；不为身份记录另造调度器。CLI 把原 PR/提交的作者与 trailers 汇入 squash 正文，记录合并处理人及原 head；列表不完整时停止，CLI 直接调用普通 GitHub PUT merge，由服务端在写入时核对 head 与保护规则，并回读 merged、合并 SHA 与原 head；不使用 gh 的合并前置策略判断。随后回读 MERGED、实际主分支检查与开发分支删除；仓库已开启合并后删分支。平台生成的 author/committer 不改写，完整来源保存在 PR、Review 与 squash 正文。
 
+0.5.3 修正同步合并接口的写入拒绝分类：HTTP 403/404/405/409/422 返回 `primary.status=failed`、`github_rejected`、退出码 1；405 表示本次不能合并，409 表示请求 SHA 与实际 head 不符。它们不触发 metadata，也不自动重试。其他无法确认的写入（网络、超时、5xx 等）和已写成功后的回读失败继续返回 `unknown`、退出码 2，只提供只读核实路径。参见 [GitHub 同步合并契约](https://docs.github.com/en/rest/pulls/pulls#merge-a-pull-request)。
+
 `--result-json` 只改变结果报告，不改变 Review/merge 的身份、SHA 绑定或保护规则。JSON 中 `primary.status=succeeded` 只表示主 Review/merge 已确认，不表示 metadata 或完整业务交付都完成；metadata 失败时按输出的 `aipipe metadata` argv 修复，不能重复原 Review/merge。`primary.status=unknown` 表示写入可能已经发生但无法确认，只能按输出的只读 argv 核对 PR/Review 事实。
 
 ## 规划发布、放行与其他处理

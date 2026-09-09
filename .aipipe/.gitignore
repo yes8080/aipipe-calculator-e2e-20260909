@@ -19,3 +19,6 @@ __pycache__/
 # Local aipipe runtime and generated previews
 /.runtime/
 /plans/batch.preview.md
+
+# Host-only configuration overlays
+/*.local.json

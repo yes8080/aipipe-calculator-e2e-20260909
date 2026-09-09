@@ -45,5 +45,5 @@ class CompatibilityTests(unittest.TestCase):
 
     def test_fresh_resources_include_contract_and_invalid_versions_are_rejected(self):
         initialize.scaffold(self.root)
-        self.assertEqual(json.loads((self.root/'.aipipe/compatibility.json').read_text())['minimum_cli_version'],'0.5.2')
+        self.assertEqual(json.loads((self.root/'.aipipe/compatibility.json').read_text())['minimum_cli_version'],'0.5.3')
         with self.assertRaises(ValueError):config.validate({'schema_version':1,'compatibility':{'minimum_cli_version':'next'}})

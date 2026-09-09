@@ -17,7 +17,7 @@
   "repository": "yes8080/aipipe-calculator-e2e-20260909",
   "default_branch": "main",
   "compatibility": {
-    "minimum_cli_version": "0.5.2"
+    "minimum_cli_version": "0.5.3"
   },
   "commands": {
     "test": {
@@ -43,5 +43,8 @@
     "required_check": "ci",
     "integration_id": 15368,
     "workflow_path": ".github/workflows/aipipe-product-ci.yml"
+  },
+  "error_reporting": {
+    "enabled": false
   }
 }

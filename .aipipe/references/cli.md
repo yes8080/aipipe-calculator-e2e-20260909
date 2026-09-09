@@ -1,6 +1,6 @@
 # aipipe CLI 使用指南
 
-0.5.2 提供可安装的 Python CLI。Skills 负责理解任务和选择能力；CLI 负责确定性的配置、凭据和 GitHub 操作。模型、开发工具由用户选择并手工启动。没有固定的“初始化 → 设计 → 发布”流程。
+0.5.3 提供可安装的 Python CLI。Skills 负责理解任务和选择能力；CLI 负责确定性的配置、凭据和 GitHub 操作。模型、开发工具由用户选择并手工启动。没有固定的“初始化 → 设计 → 发布”流程。
 
 ## 安装一次，在各项目使用
 
@@ -189,3 +189,11 @@ PATH 不可见时先检查 `~/.local/bin/aipipe`；完整模板可用 `python3 .
 ## 任务元数据
 
 阶段、PR 标签及 Issue 里程碑约定、Owner 工作流安装及手工修复见 [元数据约定](metadata.md)。新版本须同轮同步模板、全局 CLI、测试项目及生成的自动化文件。
+
+## GitHub 错误诊断（0.5.3）
+
+内测可选开关：`config set --auto-report-errors on --report-credential-ref REF`，关闭用 `--auto-report-errors off`。默认关闭，目标固定为 `yes8080/aipipe-template`；外部凭据、上传字段、去重及离线边界见 [自动缺陷上报](error-reporting.md)。
+
+API 错误包含 HTTP 状态或退出码、请求方法、去除查询参数并遮蔽路径值的路由，以及固定 reason：`http`、`network`、`timeout`、`unavailable`、`process`、`invalid_response`。结构化 Review/merge 错误也保留这些脱敏字段；不回显 stderr、响应正文、token 或私钥。
+
+遇到只读失败，记录命令、版本、reason、方法与路由后核对执行环境，再显式重跑必要查询；没有网络错误证据时不自动归因于网络。`process` 表示未知进程失败。写入不自动重试，按主结果 failed/unknown 区分处理；写后回读失败仍是 unknown，不能把明确拒绝分类用于回读阶段。

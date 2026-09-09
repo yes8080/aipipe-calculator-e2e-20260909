@@ -4,6 +4,8 @@
 
 ## 当前资源版本
 
+0.5.3 修复同步合并已知拒绝的结果分类，并增加不含凭据及原始响应的 API 请求上下文和错误类型；源码、安装 CLI、生成 automation 均有脱敏及单次写入回归。网络瞬时失败的历史根因仍需真实诊断证据，不因诊断增强便宣称已修复网络。
+
 0.5.2 新增显式 metadata inline/workflow 模式、Review 信号 workflow、workflow_run 原生 run 事实核验、可信默认分支同步、事件路由减量、开放加近期关闭巡检、显式历史修复窗口和逐任务失败隔离。0.5.1 新增 `status` 只读交接状态，覆盖 Issue/PR 关联、角色诊断、原生 Review、required checks、merge commit checks、离线与 unknown 边界。0.5.0 新增 `github --result-json` 结构化结果协议，覆盖带身份的 `pr review` 与 `pr merge`。候选实现和验收状态以对应 GitHub PR、CI 与独立 Review 为准；本文只描述通用工具能力和验证范围，不提前替代合并结论。
 
 历史基线：0.4.6 已通过独立验收并合并，见 [PR #16](https://github.com/yes8080/aipipe-template/pull/16)，合并提交 `857a0e453aacdd1162f28efccb9501b87d42b13a`。该版本工具测试为 163 项；后续版本的证据以各自 PR 与 CI 为准，不用此处的历史数量代替当前检查。
