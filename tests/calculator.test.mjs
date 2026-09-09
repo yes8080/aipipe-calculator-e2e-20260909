@@ -24,3 +24,15 @@ test('limits long input', () => assert.equal(input('1'.repeat(130)).expression.l
 test('small result can continue without unsupported exponent notation', () => assert.equal(input('1/10000000=*2=').display,'0.0000002'));
 
 test('tiny supported values retain significant digits', () => assert.equal(input('1.23/1000000000000=').display,'0.00000000000123'));
+
+test('Delete clears typed input, errors and completed results like Escape', () => {
+  for (const sequence of ['123+4', '1/0=', '2+3=']) {
+    const calculator = input(sequence);
+    calculator.input('Delete');
+    assert.equal(calculator.display, '0', sequence);
+    assert.equal(calculator.error, '');
+    assert.equal(calculator.result, false);
+    calculator.input('7');
+    assert.equal(calculator.display, '7');
+  }
+});
