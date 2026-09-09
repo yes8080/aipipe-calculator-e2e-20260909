@@ -1,0 +1,39 @@
+{
+  "batch": "B01",
+  "milestone": {
+    "title": "M1 用户资料查询",
+    "completion": "后端接口与前端页面均已交付，业务 CI 和独立验收通过，前后端查询链路可运行。"
+  },
+  "design_path": "docs/development.md",
+  "slices": [
+    {
+      "slice_id": "B01-S001",
+      "sequence": 1,
+      "title": "实现用户资料查询接口",
+      "depends_on": [],
+      "goal": "授权用户能够查询自己的基础资料。",
+      "scope": ["backend 用户查询接口、权限检查与对应测试"],
+      "out_of_scope": ["资料修改、管理员查询"],
+      "acceptance": ["授权查询返回 200 与约定字段", "未授权查询返回 401，不返回用户资料"],
+      "test_requirements": ["覆盖查询成功和未授权请求", "验证响应不包含密码等内部字段"],
+      "verification": [{"directory": "backend", "command": "./mvnw -B verify"}],
+      "deliverables": ["业务接口与必要产品配置", "单元和接口测试", "docs/ 中的接口说明"]
+    },
+    {
+      "slice_id": "B01-S002",
+      "sequence": 2,
+      "title": "实现用户资料页面并验证查询链路",
+      "depends_on": ["B01-S001"],
+      "goal": "登录用户能够查看资料，并在请求失败时获得明确反馈。",
+      "scope": ["frontend 资料页面、组件测试与前后端查询 E2E"],
+      "out_of_scope": ["资料编辑、视觉主题切换"],
+      "acceptance": ["页面展示接口返回的资料", "请求失败时展示可重试提示", "真实前后端查询链路通过 E2E"],
+      "test_requirements": ["组件测试覆盖加载、成功与失败状态", "E2E 使用隔离的测试服务与数据"],
+      "verification": [
+        {"directory": "frontend", "command": "npm ci && npm run test:unit && npm run typecheck && npm run build"},
+        {"directory": "frontend", "command": "npm run test:e2e"}
+      ],
+      "deliverables": ["Vue 页面与组件测试", "Playwright E2E 与项目测试环境配置", "产品运行说明"]
+    }
+  ]
+}

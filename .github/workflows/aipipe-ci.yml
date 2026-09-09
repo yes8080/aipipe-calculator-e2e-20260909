@@ -1,0 +1,27 @@
+name: aipipe template checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aipipe-template-checks:
+    name: aipipe-template-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install CLI and packaged resources
+        run: python3 -m pip install .aipipe
+      - name: Test aipipe tools and installed CLI (not product acceptance)
+        run: AIPIPE_TEST_BINARY="$(command -v aipipe)" python3 -m unittest discover -s .aipipe/tests -v

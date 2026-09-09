@@ -1,0 +1,21 @@
+# Python bytecode and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Packaging output
+/build/
+/dist/
+*.egg-info/
+
+# Test and coverage output
+.coverage
+.coverage.*
+/htmlcov/
+/coverage.xml
+
+# Local aipipe runtime and generated previews
+/.runtime/
+/plans/batch.preview.md

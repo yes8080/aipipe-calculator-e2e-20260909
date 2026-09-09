@@ -1,0 +1,12 @@
+name: aipipe review signal
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+permissions: {}
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Signal review activity for trusted metadata workflow
+        run: echo "Review activity signal only; trusted metadata runs from the default branch via workflow_run."

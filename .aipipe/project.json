@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "repository": null,
+  "default_branch": null,
+  "apps": {
+    "developer": {"app_id": null, "slug": null, "installation_id": null, "credential_ref": "aipipe/developer"},
+    "delivery": {"app_id": null, "slug": null, "installation_id": null, "credential_ref": "aipipe/delivery"}
+  },
+  "ci": {"required_check": null, "workflow_path": null},
+  "commands": {},
+  "preferences": {
+    "planning": {"tool": null, "model": null},
+    "development": {"tool": null, "model": null},
+    "review": {"tool": null, "model": null}
+  },
+  "execution": {"strip_env": []}
+}

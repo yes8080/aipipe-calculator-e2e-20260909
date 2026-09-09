@@ -1,0 +1,18 @@
+# Operating system metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Editor temporary files (shared editor configuration stays trackable)
+*.swp
+*.swo
+*~
+
+# Local Python environments
+.venv/
+venv/
+
+# Local environment overrides (keep .env.example and other templates)
+.env.local
+.env.*.local

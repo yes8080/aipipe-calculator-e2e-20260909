@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aipipe-workflow-cli"
+version = "0.5.2"
+description = "Composable Skills and a GitHub-backed project CLI"
+requires-python = ">=3.9"
+readme = "README.md"
+dependencies = []
+
+[project.scripts]
+aipipe = "aipipe.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aipipe"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"templates" = "aipipe/resources/templates"
+"skills" = "aipipe/resources/skills"
+"references" = "aipipe/resources/references"
+"plans/batch.example.json" = "aipipe/resources/plans/batch.example.json"
+"AGENTS.md" = "aipipe/resources/AGENTS.md"
+"SKILL.md" = "aipipe/resources/SKILL.md"
+"README.md" = "aipipe/resources/README.md"
+"compatibility.json" = "aipipe/resources/compatibility.json"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "templates", "skills", "references", "plans", "tests", "scripts", "AGENTS.md", "SKILL.md", "README.md", "pyproject.toml", "compatibility.json"]
+exclude = ["/drafts/**"]

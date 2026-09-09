@@ -1,0 +1,45 @@
+name: aipipe metadata
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, closed, ready_for_review, converted_to_draft, labeled, unlabeled, milestoned, demilestoned]
+  issues:
+    types: [opened, edited, reopened, closed, labeled, unlabeled, milestoned, demilestoned]
+  create:
+  delete:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+    inputs:
+      closed_scope:
+        description: 'Closed Issue scan scope: recent uses the bounded recent window; history uses the larger bounded repair window.'
+        required: false
+        default: recent
+        type: choice
+        options:
+          - recent
+          - history
+  workflow_run:
+    workflows: ["aipipe review signal"]
+    types: [completed]
+concurrency:
+  group: aipipe-metadata-${{ github.repository }}
+  queue: max
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: .aipipe/automation
+      - name: Reconcile GitHub ledger from current facts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .aipipe/automation/metadata.py
