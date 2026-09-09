@@ -4,6 +4,8 @@
 
 aipipe 提供可移除的 Skills、JSON 项目配置、配置生成与执行工具，以及面向人的使用文档。不实现模型路由、客户端启动器、常驻服务、任务数据库或新的合并平台。
 
+设计原则：gh 已有的能力直接复用，优先使用原生命令、JSON 输出和 body-file；仅在原生命令不能满足明确契约时使用 `gh api`。aipipe 只补必要的配置、身份、脱敏和结果判断，不重复实现分页、缓存、队列或 GitHub 状态管理。
+
 `AGENTS.md` 维护共同约定；`skills/` 为六个能力入口；`references/` 为人读文档；`src/aipipe/` 为唯一 Python 实现；`scripts/` 只保留四个旧命令的兼容包装。`pyproject.toml` 生成 wheel 和 console entry point，打包时直接纳入原有 Skill、模板和参考文档，不维护第二份资源源码。
 
 - `context`、`config`：发现目标项目，合并与验证非秘密配置。

@@ -104,6 +104,15 @@ def update(config, args):
         if args.metadata_mode not in ('inline','workflow'):
             raise ValueError('metadata-mode must be inline or workflow')
         config.setdefault('metadata',{})['mode']=args.metadata_mode
+    if getattr(args, 'auto_report_errors', None) is not None:
+        config.setdefault('error_reporting', {})['enabled'] = args.auto_report_errors == 'on'
+        if args.auto_report_errors == 'on':
+            from .compatibility import version
+            minimum = config.setdefault('compatibility', {}).get('minimum_cli_version', '0.0.0')
+            if version(minimum) < version('0.5.3'):
+                config['compatibility']['minimum_cli_version'] = '0.5.3'
+    if getattr(args, 'report_credential_ref', None) is not None:
+        config.setdefault('error_reporting', {})['credential_ref'] = args.report_credential_ref
     if getattr(args,'checks_file',None):
         values=json.loads(args.checks_file.read_text())
         from .policy import required_checks
@@ -176,6 +185,14 @@ def validate(config):
     if mode not in ('inline','workflow'):
         raise ValueError('metadata.mode must be inline or workflow')
     execution = config.get('execution', {})
+    reporting = config.get('error_reporting', {})
+    if not isinstance(reporting, dict) or type(reporting.get('enabled', False)) is not bool:
+        raise ValueError('error_reporting.enabled must be a boolean')
+    if set(reporting) - {'enabled', 'credential_ref'}:
+        raise ValueError('error_reporting accepts only enabled and credential_ref; destination is yes8080/aipipe-template')
+    ref = reporting.get('credential_ref')
+    if (ref is not None and (not isinstance(ref, str) or not re.fullmatch(r'[A-Za-z0-9_./:-]{1,160}', ref))) or (reporting.get('enabled') and not ref):
+        raise ValueError('enabled error_reporting requires a logical credential_ref, never a token')
     if not isinstance(execution, dict) or not isinstance(execution.get('strip_env', []), list):
         raise ValueError('execution.strip_env must be an array')
     if any(not isinstance(x, str) for x in execution.get('strip_env', [])):
@@ -219,6 +236,8 @@ def add_options(p):
     p.add_argument('--checks-file', type=Path)
     p.add_argument('--minimum-cli-version')
     p.add_argument('--preferences-file', type=Path)
+    p.add_argument('--auto-report-errors', choices=('on', 'off'), help='opt in/out of sanitized defect reports to yes8080/aipipe-template')
+    p.add_argument('--report-credential-ref', help='separate external credential reference with Issues write on the report repository')
 
 
 def parser():

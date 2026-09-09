@@ -20,6 +20,7 @@ def execute(args, run=subprocess.run, env=None):
         print(json.dumps({"project": str(root), "cli": compatibility.describe(root, config), "repository": config.get("repository"),
                           "default_branch": config.get("default_branch"),
                           "commands": sorted(config.get("commands", {})), "ci": config.get("ci", {}),
+                          "error_reporting": config.get('error_reporting', {'enabled':False}),
                           "apps": {role: {key: entry.get(key) for key in ("app_id", "installation_id", "slug", "credential_ref")} for role, entry in config.get("apps", {}).items()},
                           "preferences": config.get("preferences", {})}, ensure_ascii=False, indent=2))
         return 0
@@ -85,7 +86,11 @@ def execute(args, run=subprocess.run, env=None):
     else:
         raise ValueError("unknown action")
     try:
-        return run(command, cwd=root, env=child_env).returncode
+        code = run(command, cwd=root, env=child_env).returncode
+        if code:
+            from .reporting import capture
+            capture(GhError('command', code=code, reason='process'))
+        return code
     finally:
         for path in cleanup:Path(path).unlink(missing_ok=True)
 
@@ -130,12 +135,18 @@ def no_recovery():
 
 
 def clean_error(exc, phase, category=None):
+    from .reporting import capture
+    capture(exc, phase)
     if isinstance(exc, GhError):
         result = {'category': category or 'github_error', 'phase': phase}
         if exc.status is not None:
             result['status'] = exc.status
         elif exc.code is not None:
             result['status'] = 'unknown'
+        for field in ('reason', 'method', 'endpoint'):
+            value = getattr(exc, field, None)
+            if value is not None:
+                result[field] = value
         return result
     return {'category': category or 'validation', 'phase': phase}
 
@@ -160,6 +171,8 @@ def failed_result(operation, repo, number, error):
 
 
 def unknown_result(operation, repo, number, head, error, recovery):
+    from .reporting import capture_result
+    capture_result(error.get('category'), error.get('phase'))
     primary = {'status':'unknown', 'error':error}
     if head:
         primary['head'] = head
@@ -305,7 +318,9 @@ def execute_github_result_json(args, config, root, config_path, repo, run, env):
             service.reconcile(issue_number, apply=True, expected_pr=int(number))
             result['metadata'] = {'status':'succeeded'}
             result['recovery'] = no_recovery()
-        except (ValueError, OSError, KeyError, TypeError, AttributeError, GhError):
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, GhError) as exc:
+            from .reporting import capture
+            capture(exc, 'metadata')
             result['metadata'] = {'status':'failed', 'error':{'category':'metadata_failed', 'phase':'metadata'}}
             result['recovery'] = metadata_recovery(root, config_path, args, number)
         print(json.dumps(result, ensure_ascii=False))
@@ -323,7 +338,10 @@ def submit_attributed_result_json(client, repo, operation, number, payload, reco
             result = client.request(path+'/merge', 'PUT', payload)
         except GhError as exc:
             status = getattr(exc, 'status', None)
-            if status in (403, 422):
+            # Synchronous PUT /pulls/{number}/merge explicitly rejects these
+            # statuses, including 405 (cannot merge) and 409 (head changed).
+            # Timeouts, 5xx and readback failures must still remain unknown.
+            if status in (403, 404, 405, 409, 422):
                 return failed_result(operation, repo, number, clean_error(exc, 'write', 'github_rejected'))
             return unknown_result(operation, repo, number, head, clean_error(exc, 'write', 'write_unconfirmed'),
                                   recovery('write result was not confirmed'))

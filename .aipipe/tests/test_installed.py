@@ -95,4 +95,62 @@ class InstalledCliTests(unittest.TestCase):
             result=subprocess.run([sys.executable,'-I','-c','import sys; sys.path.insert(0,sys.argv[1]); import metadata; assert metadata.linked_issue({"body":"Closes #7"}) == 7',str(root/'.aipipe/automation')],env=env,capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stderr)
 
+    def test_installed_merge_405_is_failed_with_one_write_and_safe_diagnostics(self):
+        import sys
+        with tempfile.TemporaryDirectory(prefix='aipipe merge rejection ') as temp:
+            base = Path(temp)
+            root = base/'project'
+            (root/'.aipipe').mkdir(parents=True)
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            subprocess.run(['git', '-C', str(root), 'remote', 'add', 'origin',
+                            'https://github.com/owner/repo.git'], check=True)
+            (root/'.aipipe/project.json').write_text(json.dumps({
+                'schema_version':1, 'repository':'owner/repo',
+                'apps':{'delivery':{'credential_ref':'test/delivery'}}}))
+            registry = base/'credentials.json'
+            registry.write_text(json.dumps({'credentials':{
+                'test/delivery':{'kind':'env', 'name':'TEST_TOKEN'}}}))
+            env = dict(os.environ, TEST_TOKEN='synthetic-secret')
+            env.pop('PYTHONPATH', None)
+            created = subprocess.run([BINARY, 'identity', 'create', '--project', str(root),
+                                      '--tool', 'test', '--model', 'unknown', '--role', 'reviewer',
+                                      '--credential-role', 'delivery'], env=env, capture_output=True, text=True)
+            self.assertEqual(created.returncode, 0, created.stderr)
+            actor = json.loads(created.stdout)['identity_file']
+            log = base/'requests.jsonl'
+            stub = base/'gh'
+            stub.write_text('#!' + sys.executable + '\n' + '''import json, sys
+from pathlib import Path
+args = sys.argv[1:]
+method = args[args.index('--method')+1]
+with Path(__file__).with_name('requests.jsonl').open('a') as out:
+    out.write(json.dumps({'method':method,'path':args[1]})+'\\n')
+if method == 'PUT':
+    print('gh: Pull Request is not mergeable. synthetic-secret (HTTP 405)', file=sys.stderr)
+    sys.exit(1)
+if '/commits?' in args[1]:
+    print('[]')
+else:
+    print(json.dumps({'number':6,'head':{'sha':'a'*40},'commits':0,'body':'Closes #1'}))
+''')
+            stub.chmod(0o700)
+            env['PATH'] = str(base) + os.pathsep + env.get('PATH', '')
+            result = subprocess.run([BINARY, 'github', '--project', str(root),
+                                     '--credentials', str(registry), '--identity', actor,
+                                     '--role', 'delivery', '--result-json', '--',
+                                     'pr', 'merge', '6', '--squash', '--match-head-commit', 'a'*40],
+                                    cwd=base, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertEqual(result.stderr, '')
+            data = json.loads(result.stdout)
+            self.assertEqual(data['primary']['status'], 'failed')
+            self.assertEqual(data['primary']['error']['status'], 405)
+            self.assertEqual(data['primary']['error']['method'], 'PUT')
+            self.assertEqual(data['primary']['error']['reason'], 'http')
+            self.assertEqual(data['metadata']['status'], 'not_run')
+            self.assertNotIn('synthetic-secret', result.stdout)
+            calls = [json.loads(line) for line in log.read_text().splitlines()]
+            self.assertEqual(sum(call['method'] == 'PUT' for call in calls), 1)
+            self.assertEqual(calls[-1]['method'], 'PUT')
+
 if __name__=='__main__':unittest.main()
