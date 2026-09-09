@@ -1,0 +1,43 @@
+{
+  "batch": "CALC01",
+  "milestone": {
+    "title": "M1 网页计算器全流程测试",
+    "completion": "计算器业务测试、真实浏览器独立验收与CI通过，独立审批后合并，Issue关闭且开发分支删除。"
+  },
+  "design_path": "docs/development.md",
+  "slices": [
+    {
+      "slice_id": "CALC01-S001",
+      "sequence": 1,
+      "title": "实现网页计算器并完成独立验收",
+      "depends_on": [],
+      "goal": "用户通过按钮或键盘完成可靠的四则计算。",
+      "scope": [
+        "计算表达式解析、输入状态机、响应式界面和原生业务测试"
+      ],
+      "out_of_scope": [
+        "登录、后端、数据库、科学计算与在线部署"
+      ],
+      "acceptance": [
+        "2+3*4=14，0.1+0.2显示0.3，支持负数",
+        "除零显示错误且清空后恢复",
+        "键盘与按钮一致，320px无横向溢出",
+        "求值后输入/重复等号符合设计文档"
+      ],
+      "test_requirements": [
+        "测试四则、优先级、小数、错误恢复与输入编辑",
+        "独立浏览器验证页面交互与可访问名称"
+      ],
+      "verification": [
+        {
+          "directory": ".",
+          "command": "npm ci && npm test && npm run build"
+        }
+      ],
+      "deliverables": [
+        "计算器源码与业务测试",
+        "构建脚本、锁文件和README"
+      ]
+    }
+  ]
+}

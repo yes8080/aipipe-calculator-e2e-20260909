@@ -1,17 +1,42 @@
 {
   "schema_version": 1,
-  "repository": null,
-  "default_branch": null,
   "apps": {
-    "developer": {"app_id": null, "slug": null, "installation_id": null, "credential_ref": "aipipe/developer"},
-    "delivery": {"app_id": null, "slug": null, "installation_id": null, "credential_ref": "aipipe/delivery"}
+    "developer": {
+      "credential_ref": "aipipe/yes8080/aipipe-calculator-e2e-20260909/developer",
+      "app_id": 4861859,
+      "slug": "yes8080-aipipe-developer",
+      "installation_id": 159791834
+    },
+    "delivery": {
+      "credential_ref": "aipipe/yes8080/aipipe-calculator-e2e-20260909/delivery",
+      "app_id": 4862009,
+      "slug": "yes8080-aipipe-delivery",
+      "installation_id": 159795267
+    }
   },
-  "ci": {"required_check": null, "workflow_path": null},
-  "commands": {},
-  "preferences": {
-    "planning": {"tool": null, "model": null},
-    "development": {"tool": null, "model": null},
-    "review": {"tool": null, "model": null}
+  "repository": "yes8080/aipipe-calculator-e2e-20260909",
+  "default_branch": "main",
+  "compatibility": {
+    "minimum_cli_version": "0.5.2"
   },
-  "execution": {"strip_env": []}
+  "commands": {
+    "test": {
+      "cwd": ".",
+      "argv": [
+        "npm",
+        "test"
+      ]
+    },
+    "build": {
+      "cwd": ".",
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ]
+    }
+  },
+  "attribution": {
+    "required": true
+  }
 }

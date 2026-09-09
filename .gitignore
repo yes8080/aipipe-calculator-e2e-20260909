@@ -16,3 +16,7 @@ venv/
 # Local environment overrides (keep .env.example and other templates)
 .env.local
 .env.*.local
+
+# Calculator artifacts
+node_modules/
+dist/
