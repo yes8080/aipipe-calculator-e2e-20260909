@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#edf1e9"><title>清算 · 网页计算器</title><link rel="stylesheet" href="./src/styles.css"></head>
+<body>
+<main>
+  <header><p class="eyebrow">EVERYDAY NUMBERS</p><h1>让计算，简单一点。</h1><p class="intro">随手输入，轻松算清。</p></header>
+  <section class="calculator" aria-label="计算器">
+    <div class="brand"><span>清算 <small>CALCULATOR</small></span><span class="dot" aria-hidden="true"></span></div>
+    <div class="screen"><output id="display" aria-label="计算结果" aria-live="polite" aria-atomic="true">0</output><p id="status">按 Enter 或等号计算</p></div>
+    <div class="keys">
+      <button data-key="AC" class="utility" aria-label="清空">AC</button><button data-key="Backspace" class="utility" aria-label="退格">⌫</button><button data-key="/" class="operator" aria-label="除">÷</button><button data-key="*" class="operator" aria-label="乘">×</button>
+      <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button data-key="-" class="operator" aria-label="减">−</button>
+      <button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="+" class="operator" aria-label="加">+</button>
+      <button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="=" class="equal" aria-label="等于">=</button>
+      <button data-key="0" class="zero">0</button><button data-key="." aria-label="小数点">.</button>
+    </div>
+  </section>
+  <footer>支持键盘输入 <span>·</span> Esc 清空 <span>·</span> ⌫ 退格</footer>
+</main><script type="module" src="./src/app.mjs"></script>
+</body></html>

@@ -38,5 +38,10 @@
   },
   "attribution": {
     "required": true
+  },
+  "ci": {
+    "required_check": "ci",
+    "integration_id": 15368,
+    "workflow_path": ".github/workflows/aipipe-product-ci.yml"
   }
 }
